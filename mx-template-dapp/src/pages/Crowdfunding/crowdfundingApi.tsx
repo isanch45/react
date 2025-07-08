@@ -29,92 +29,62 @@ export const useCrowdfuningContract = (
 ) => {
   const { network } = useGetNetworkConfig();
   const proxy = new ProxyNetworkProvider(network.apiAddress);
+
   const [targetAmount, setTargetAmount] = useState<BigInt>(BigInt(0));
   const [currentFunds, setCurrentFunds] = useState<BigInt>(BigInt(0));
   const [deadline, setDeadline] = useState<string>('');
   const [userDeposit, setUserDeposit] = useState<BigInt>(BigInt(0));
 
-  const getTargetAmount = async () => {
+  const [minDeposit, setMinDeposit] = useState<BigInt>(BigInt(0));
+  const [maxPerWallet, setMaxPerWallet] = useState<BigInt>(BigInt(0));
+  const [maxTotalProject, setMaxTotalProject] = useState<BigInt>(BigInt(0));
+  const [ownerAddress, setOwnerAddress] = useState<string>('');
+
+  const queryValue = async (funcName: string, args = []) => {
     try {
       const query = smartContract.createQuery({
-        func: new ContractFunction('getTarget')
+        func: new ContractFunction(funcName),
+        args
       });
       const queryResponse = await proxy.queryContract(query);
-
-      const endpointDefinition = smartContract.getEndpoint('getTarget');
-
-      const { firstValue: amount } = resultsParser.parseQueryResponse(
+      const endpointDefinition = smartContract.getEndpoint(funcName);
+      const { firstValue } = resultsParser.parseQueryResponse(
         queryResponse,
         endpointDefinition
       );
-
-      setTargetAmount(amount?.valueOf());
+      return firstValue?.valueOf();
     } catch (err) {
-      console.error('Unable to call getTarget', err);
+      console.error(`Unable to call ${funcName}`, err);
+      return BigInt(0);
     }
   };
 
-  const getCurrentFunds = async () => {
-    try {
-      const query = smartContract.createQuery({
-        func: new ContractFunction('getCurrentFunds')
-      });
-      const queryResponse = await proxy.queryContract(query);
-
-      const endpointDefinition = smartContract.getEndpoint('getCurrentFunds');
-
-      const { firstValue: amount } = resultsParser.parseQueryResponse(
-        queryResponse,
-        endpointDefinition
-      );
-
-      setCurrentFunds(amount?.valueOf());
-    } catch (err) {
-      console.error('Unable to call getCurrentFunds', err);
-    }
-  };
-
+  const getTargetAmount = async () => setTargetAmount(await queryValue('getTarget'));
+  const getCurrentFunds = async () => setCurrentFunds(await queryValue('getCurrentFunds'));
   const getDeadline = async () => {
-    try {
-      const query = smartContract.createQuery({
-        func: new ContractFunction('getDeadline')
-      });
-      const queryResponse = await proxy.queryContract(query);
-
-      const endpointDefinition = smartContract.getEndpoint('getDeadline');
-
-      const { firstValue: deadline } = resultsParser.parseQueryResponse(
-        queryResponse,
-        endpointDefinition
-      );
-
-      setDeadline(deadline?.valueOf().toFixed());
-    } catch (err) {
-      console.error('Unable to call getDeadline', err);
-    }
+    const val = await queryValue('getDeadline');
+    setDeadline(val?.toFixed?.() || '');
+  };
+  const getUserDeposit = async () => {
+    if (!userAddress) return;
+    const val = await queryValue('getDeposit', [new AddressValue(new Address(userAddress))]);
+    setUserDeposit(val);
   };
 
-  const getUserDeposit = async () => {
-    if (!userAddress) {
-      return 0;
-    }
+  const getMinDeposit = async () => setMinDeposit(await queryValue('getMinDepositPerTx'));
+  const getMaxPerWallet = async () => setMaxPerWallet(await queryValue('getMaxTotalPerWallet'));
+  const getMaxTotalProject = async () => setMaxTotalProject(await queryValue('getMaxTotalProject'));
+
+  const getOwnerAddress = async () => {
     try {
-      const query = smartContract.createQuery({
-        func: new ContractFunction('getDeposit'),
-        args: [new AddressValue(new Address(userAddress))]
-      });
-      const queryResponse = await proxy.queryContract(query);
-
-      const endpointDefinition = smartContract.getEndpoint('getDeposit');
-
-      const { firstValue: deposit } = resultsParser.parseQueryResponse(
-        queryResponse,
-        endpointDefinition
-      );
-
-      setUserDeposit(deposit?.valueOf());
+      const val = await queryValue('getOwneraddress');
+      console.log('📦 Valor retornat per getOwneraddress():', val);
+      const addr = val.toString();
+      console.log('✅ Adreça decodificada:', addr);
+      setOwnerAddress(addr);
     } catch (err) {
-      console.error('Unable to call getDeposit', err);
+      console.error('❌ Error decoding owner address:', err);
+      setOwnerAddress('');
     }
   };
 
@@ -128,7 +98,7 @@ export const useCrowdfuningContract = (
       chainID: network.chainId
     });
 
-    let factory = new SmartContractTransactionsFactory({
+    const factory = new SmartContractTransactionsFactory({
       config: factoryConfig,
       abi
     });
@@ -142,18 +112,108 @@ export const useCrowdfuningContract = (
       nativeTransferAmount: amount.valueOf()
     });
 
-    const sessionId = await signAndSendTransactions({
+    await signAndSendTransactions({
       transactions: [transaction],
       callbackRoute: '',
       transactionsDisplayInfo: PONG_TRANSACTION_INFO
     });
   };
 
+
+  const updateMinDeposit = async (newMin: BigInt) => {
+    if (!userAddress) return;
+
+    const factoryConfig = new TransactionsFactoryConfig({ chainID: network.chainId });
+    const factory = new SmartContractTransactionsFactory({ config: factoryConfig, abi });
+
+    const transaction = factory.createTransactionForExecute({
+      sender: new Address(userAddress),
+      contract: new Address(crowdfundingContractAddress),
+      function: 'setMinDepositPerTx',
+      gasLimit: BigInt(10000000),
+      arguments: [newMin],
+      nativeTransferAmount: 0n
+    });
+
+    await signAndSendTransactions({
+      transactions: [transaction],
+      callbackRoute: '',
+      transactionsDisplayInfo: {
+        processingMessage: 'Actualitzant mínim',
+        errorMessage: 'Error en actualitzar el mínim',
+        successMessage: 'Mínim actualitzat correctament'
+      }
+    });
+
+    getMinDeposit();
+  };
+
+ const updateMaxPerWallet = async (newMax: BigInt) => {
+  if (!userAddress) return;
+
+  const factoryConfig = new TransactionsFactoryConfig({ chainID: network.chainId });
+  const factory = new SmartContractTransactionsFactory({ config: factoryConfig, abi });
+
+  const transaction = factory.createTransactionForExecute({
+    sender: new Address(userAddress),
+    contract: new Address(crowdfundingContractAddress),
+    function: 'setMaxTotalPerWallet',
+    gasLimit: BigInt(10000000),
+    arguments: [newMax],
+    nativeTransferAmount: 0n
+  });
+
+  await signAndSendTransactions({
+    transactions: [transaction],
+    callbackRoute: '',
+    transactionsDisplayInfo: {
+      processingMessage: 'Actualitzant màxim',
+      errorMessage: 'Error en actualitzar el màxim',
+      successMessage: 'Màxim actualitzat correctament'
+    }
+  });
+
+  getMaxPerWallet();
+};
+
+const updateMaxTotalProject = async (newMax: BigInt) => {
+  if (!userAddress) return;
+
+  const factoryConfig = new TransactionsFactoryConfig({ chainID: network.chainId });
+  const factory = new SmartContractTransactionsFactory({ config: factoryConfig, abi });
+
+  const transaction = factory.createTransactionForExecute({
+    sender: new Address(userAddress),
+    contract: new Address(crowdfundingContractAddress),
+    function: 'setMaxTotalProject', // Nom correcte del contracte
+    gasLimit: BigInt(10000000),
+    arguments: [newMax],
+    nativeTransferAmount: 0n
+  });
+
+  await signAndSendTransactions({
+    transactions: [transaction],
+    callbackRoute: '',
+    transactionsDisplayInfo: {
+      processingMessage: 'Actualitzant màxim del projecte',
+      errorMessage: 'Error en actualitzar el màxim del projecte',
+      successMessage: 'Màxim del projecte actualitzat correctament'
+    }
+  });
+
+  getMaxTotalProject();
+};
+
+
   useEffect(() => {
     getTargetAmount();
     getCurrentFunds();
     getDeadline();
     getUserDeposit();
+    getMinDeposit();
+    getMaxPerWallet();
+    getMaxTotalProject();
+    getOwnerAddress();
   }, [balance]);
 
   return {
@@ -161,6 +221,14 @@ export const useCrowdfuningContract = (
     currentFunds,
     deadline,
     userDeposit,
-    doDeposit
+    doDeposit,
+    minDeposit,
+    maxPerWallet,
+    maxTotalProject,
+    ownerAddress,
+    updateMinDeposit,
+    updateMaxPerWallet,
+    updateMaxTotalProject,
+    contractAddress: crowdfundingContractAddress
   };
 };

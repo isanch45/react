@@ -1,131 +1,216 @@
 {
-  "buildInfo": {
-    "rustc": {
-      "version": "1.83.0-nightly",
-      "commitHash": "fb4aebddd18d258046ddb51fd41589295259a0fa",
-      "commitDate": "2024-09-30",
-      "channel": "Nightly",
-      "short": "rustc 1.83.0-nightly (fb4aebddd 2024-09-30)"
+    "buildInfo": {
+        "rustc": {
+            "version": "1.82.0",
+            "commitHash": "f6e511eec7342f59a25f7c0534f1dbea00d01b14",
+            "commitDate": "2024-10-15",
+            "channel": "Stable",
+            "short": "rustc 1.82.0 (f6e511eec 2024-10-15)"
+        },
+        "contractCrate": {
+            "name": "crowdfunding",
+            "version": "0.0.0"
+        },
+        "framework": {
+            "name": "multiversx-sc",
+            "version": "0.54.6"
+        }
     },
-    "contractCrate": {
-      "name": "crowdfunding-sc",
-      "version": "0.0.0"
+    "name": "CrowdfundingSc",
+    "constructor": {
+        "inputs": [
+            {
+                "name": "target",
+                "type": "BigUint"
+            },
+            {
+                "name": "deadline",
+                "type": "u64"
+            }
+        ],
+        "outputs": []
     },
-    "framework": {
-      "name": "multiversx-sc",
-      "version": "0.53.2"
-    }
-  },
-  "docs": [
-    "An empty contract. To be used as a template when starting a new contract from scratch."
-  ],
-  "name": "CrowdfundingSc",
-  "constructor": {
-    "inputs": [
-      {
-        "name": "target",
-        "type": "BigUint"
-      },
-      {
-        "name": "deadline",
-        "type": "u64"
-      }
+    "upgradeConstructor": {
+        "inputs": [],
+        "outputs": []
+    },
+    "endpoints": [
+        {
+            "name": "setMaxTotalPerWallet",
+            "onlyOwner": true,
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "max",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "setMinDepositPerTx",
+            "onlyOwner": true,
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "min",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "setMaxTotalProject",
+            "onlyOwner": true,
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "max",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "fund",
+            "mutability": "mutable",
+            "payableInTokens": [
+                "EGLD"
+            ],
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "claim",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "status",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "Status"
+                }
+            ]
+        },
+        {
+            "name": "getCurrentFunds",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getOwner",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "Address"
+                }
+            ]
+        },
+        {
+            "name": "getTarget",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getDeadline",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "getDeposit",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "donor",
+                    "type": "Address"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getMaxTotalPerWallet",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getMinDepositPerTx",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getMaxTotalProject",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getOwneraddress",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "Address"
+                }
+            ]
+        }
     ],
-    "outputs": []
-  },
-  "upgradeConstructor": {
-    "inputs": [],
-    "outputs": []
-  },
-  "endpoints": [
-    {
-      "name": "fund",
-      "mutability": "mutable",
-      "payableInTokens": ["EGLD"],
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "name": "claim",
-      "mutability": "mutable",
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "name": "status",
-      "mutability": "readonly",
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "Status"
+    "esdtAttributes": [],
+    "hasCallback": false,
+    "types": {
+        "Status": {
+            "type": "enum",
+            "variants": [
+                {
+                    "name": "FundingPeriod",
+                    "discriminant": 0
+                },
+                {
+                    "name": "Successful",
+                    "discriminant": 1
+                },
+                {
+                    "name": "Failed",
+                    "discriminant": 2
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "getCurrentFunds",
-      "mutability": "readonly",
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "BigUint"
-        }
-      ]
-    },
-    {
-      "name": "getTarget",
-      "mutability": "readonly",
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "BigUint"
-        }
-      ]
-    },
-    {
-      "name": "getDeadline",
-      "mutability": "readonly",
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "getDeposit",
-      "mutability": "readonly",
-      "inputs": [
-        {
-          "name": "donor",
-          "type": "Address"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "BigUint"
-        }
-      ]
     }
-  ],
-  "esdtAttributes": [],
-  "hasCallback": false,
-  "types": {
-    "Status": {
-      "type": "enum",
-      "variants": [
-        {
-          "name": "FundingPeriod",
-          "discriminant": 0
-        },
-        {
-          "name": "Successful",
-          "discriminant": 1
-        },
-        {
-          "name": "Failed",
-          "discriminant": 2
-        }
-      ]
-    }
-  }
 }

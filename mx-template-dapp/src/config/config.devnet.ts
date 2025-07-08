@@ -9,4 +9,4 @@ export const sampleAuthenticatedDomains = [API_URL];
 export const environment = EnvironmentsEnum.devnet;
 
 export const crowdfundingContractAddress =
-  'erd1qqqqqqqqqqqqqpgqsvtluffzc9htkvk6m643wue8gd7nmg6zk75scrm335';
+  'erd1qqqqqqqqqqqqqpgq8rpcccf4gq0s22mnxrwwzjke270kpxk8k75seq8gju';
