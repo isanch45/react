@@ -48,6 +48,18 @@
             "outputs": []
         },
         {
+            "name": "setTarget",
+            "onlyOwner": true,
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "new_target",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
             "name": "setMinDepositPerTx",
             "onlyOwner": true,
             "mutability": "mutable",

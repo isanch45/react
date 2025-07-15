@@ -165,6 +165,12 @@ const progressFundingPercent = target.gt(0)
               {errorMessage && (
                 <p className='text-red-500 text-sm'>{errorMessage}</p>
               )}
+              <div className="mt-6 text-sm text-gray-500">
+  <p><strong>Wallet connectat:</strong> {address}</p>
+  <p><strong>Wallet del propietari:</strong> {ownerAddress}</p>
+  <p><strong>Contracte:</strong> {contractAddress}</p>
+</div>
+
             </div>
           </OutputContainer>
         </div>
