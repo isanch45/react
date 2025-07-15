@@ -6,6 +6,7 @@ import svgrPlugin from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
+  base: '/', // ✅ AFEGIT AQUÍ
   server: {
     port: Number(process.env.PORT) || 3000,
     strictPort: true,
