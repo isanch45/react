@@ -29,7 +29,7 @@ export default defineConfig({
     })
   ],
   build: {
-    outDir: 'dist'
+    outDir: 'build'
   },
   preview: {
     port: 3002,
