@@ -19,6 +19,7 @@
     "react-router-dom": "6.16.0"
   },
   "scripts": {
+    "build": "yarn build:devnet",
     "lint": "eslint --ext js,ts,tsx src",
     "run-cypress": "npx cypress run",
     "start:devnet": "yarn run copy:devnet-config & vite --host 0.0.0.0",
